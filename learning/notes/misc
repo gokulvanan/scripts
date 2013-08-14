@@ -1,0 +1,7 @@
+info or exit status tracking and handling at
+http://linuxcommand.org/wss0150.php
+
+basename - command to string out director path from path name..
+eg.
+  basename /usr/bin/sort       Output "sort".
+  basename include/stdio.h .h  Output "stdio".
