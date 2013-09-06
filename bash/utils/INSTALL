@@ -1,0 +1,182 @@
+#!/bin/bash -e
+echo "Initializing Instalation parameters"
+
+#initialize
+init(){
+pid=$$
+count=0
+}
+# get input path and validate
+getInputs(){
+echo -n "Enter path of delivery-package directory "
+read dep_pack
+echo -n "Enter path to base directory of play/ROR project : "
+read proj_path
+echo -n "Enter path to public directory of play/ROR project : "
+read pub_path
+echo -n "Enter path to  backup dir: "
+read back_path
+echo -n "Press b to deploy and backup / r to recover: "
+read typeFlag
+}
+
+#validate inputs
+validatePaths(){
+echo "Validating paths"
+if [ ! -d $dep_pack ]; then
+	echo "deploay package directory path invalid"
+	exit 1 
+fi
+if [ ! -d $proj_path ]; then
+	echo "base directory path invalid"
+	exit 1 
+fi
+if [ ! -d $pub_path ]; then
+	echo "public directory path invalid"; exit 1 
+fi
+if [ ! -d $back_path ]; then
+	echo "backup directory path invalid"; exit 1 
+fi
+echo "All Paths are valid"
+
+}
+
+#utility recursirve function
+recurive_copy(){
+	local flag=$1
+	local backuppath=$2
+	local basepath=$3
+	local deploy_path_temp=$4
+	local count=$5
+	local folder_lst=$(ls $basepath) #initialize
+	# echo "Before loop $@"
+	for file in $folder_lst; do
+		path=$basepath/$file
+		if [ -d $path ]; then  #is dir
+			# echo "is dir"
+			new_path=$deploy_path_temp
+			new_backuppath=$backuppath
+			newcount=$count
+			# basepath=$path
+			# echo $path
+			# echo $new_path
+			# echo $new_backuppath
+			if [ $newcount -eq 0 ]; then #Deploy flow
+				if [ -d $new_backuppath ]; then #Backup flow
+					if [ '$file' == 'public' ]; then
+						new_path=$pub_path
+						new_backuppath=$new_backuppath/public #create public in backup
+						$(mkdir $new_backuppath)
+					else
+						new_path=$proj_path/$file
+						new_backuppath=$new_backuppath/$file #create base in backup
+						$(mkdir $new_backuppath)
+					fi
+				else
+					if [ '$file' == 'public' ]; then
+						new_path=$pub_path
+					else
+						new_path=$proj_path/$file
+					fi
+				fi
+				newcount=1
+			else							
+				if [ -d $new_backuppath ]; then #Backup flow
+					new_path=$new_path/$file
+					new_backuppath=$new_backuppath/$file
+					#if dir does exist return as there is nothing to backup
+					if [ ! -d $new_path ]; then
+						continue 
+					else
+						if [ ! -d $new_backuppath ]; then
+							$(mkdir $new_backuppath)
+						fi
+					fi
+				else
+					new_path=$new_path/$file
+					#if dir does exist create it
+					if [ ! -d $new_path ]; then
+						$(mkdir $new_path)
+					fi
+				fi
+			fi
+			recurive_copy $flag $new_backuppath $path $new_path $newcount 
+		elif [ -f $path ]; then  #is file
+			# echo "here $path"
+			if [ -d $backuppath ]; then #Backup flow
+				local filePath=$deploy_path_temp/$file
+				echo $filePath
+				if [ -f $filePath ]; then
+					echo "BackingUp file $file"
+					$(cp -f  $filePath $backuppath/)
+				fi
+			else							#Deploy flow
+				if [ $flag == 'remove' ]; then
+					echo "Removing file $file"
+					$(rm -f  $deploy_path_temp/$file)
+				else
+					echo "Copying file $file"
+					$(cp -f  $path $deploy_path_temp/)
+				fi
+			fi
+			
+		else
+			if [ -d $backuppath ]; then #Backup flow
+				echo "Error in backing up, Dont use this script"
+				exit 1
+			else
+				echo "Pacakge corrupted, cant install"
+				exit 1
+			fi
+		fi
+	done
+}
+# backup files
+backup(){
+	echo "Backing up files"
+	recurive_copy 'add' $back_path $dep_pack '' 0 
+	echo " Files Backed up successfully"
+}
+
+# copy files
+copy(){
+	echo "Copying Files"
+	recurive_copy 'add' 'invalidPath' $dep_pack '' 0 
+	echo "All Files Copied -- COOL"
+}
+# resotre in case of any errors
+restore(){
+	echo "Restoring Files from backup"
+	recurive_copy 'remove' 'invalidPath' $dep_pack '' 0 
+	recurive_copy 'add' 'invalidPath' $back_path '' 0 
+	echo "Files restored"
+}
+
+testing(){
+	currDir=$(pwd)
+	echo $currDir
+	dep_pack=$currDir/test/package
+	proj_path=$currDir/test/komlimobile_play
+	pub_path=$currDir/test/komlimobile_play/public
+	back_path=$currDir/test/backup
+	typeFlag="b"
+}
+
+init
+getInputs
+#testing
+validatePaths
+
+if [ $typeFlag == 'r' ]; then
+	restore
+else
+	backup
+	copy
+fi
+
+
+
+
+
+
+

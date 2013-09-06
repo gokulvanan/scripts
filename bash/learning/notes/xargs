@@ -1,0 +1,53 @@
+#xargs learning
+
+# read out two lines  from all conf file
+find /etc -name '*.conf' | xargs head -2
+
+#1) grep gets lines with text Austrlia with first line as fileName with relative path
+#2) sed extracts the filenames with path alone
+#3) sort -u returns sorted uniq list of  output
+#4) xargs less - sends these files retured to as args to less editor
+# hence less editor opens all the files in the list .. (moving between files in less :n
+
+grep 'Australia' -r . | sed 's/:.*//' | sort -u |xargs less
+
+#Note the below cmd is same as able except absence of xargs causes the output of sort -u i.e. the filenames to piped into less directely
+# hence less does not open the multiple files rather just displays the list as text in less window. (This is beacuase less can work with file input as args and also stream of content as args.. if we try the same with rm or mv .. it would fail.
+
+grep 'Australia' -r . | sed 's/:.*//' | sort -u | less
+
+find -name '*.csv' | xargs wc -l
+
+find -name '*.csv' | xargs grep 'Australia'
+
+find . -name '*.csv' -print0 | xargs -0 wc -l #print0 and xargs -0 are applied to deal with sapces and special chars so that they are not treated as line breaks
+
+getconf ARG_MAX # display max limit of arguments for a systme
+git log --format="%H %P" | xargs -L 1 git diff
+#on ubuntu the above was 2097152
+
+#default limit  set in xargs to batch arguments to commnand is 4096
+#to change this use -s option
+
+find . -name '*.csv' -print0 | xargs -0 -c5000 wc -l
+
+# -n option used to break up arguments for command eg.. dif.. 
+# diff operates at a time on two files. hence
+
+find . -name '*.java' -print0 | xargs -0 -n2  diff
+
+echo {0..9} # prints 0 to 9
+echo {0..9} | xargs -n 2 # prints two lines at a time.. 
+
+# -L optoin to execute line by line of output
+# note git log --format="%H %P" print hash1 hash2 one one line
+git log --format="%H %P" | xargs -L1 git diff
+
+# -n is for number of arguments where -L is number of lines.
+#parallelization - process of using muliple core
+cat /proc/cpuinfo | grep process | wc -l # gives the count of number of cores
+
+time (commad executed here with pipes if any) # returns time take to execute command
+
+time echo {1..5} | xargs -n1 -P5 sleep # call sleep on each of 5 times printed for duration between 1 to 5 in increasing order .. 
+

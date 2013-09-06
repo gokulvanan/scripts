@@ -1,0 +1,49 @@
+  var something = require( './something' );
+  var something = require( './something.js' );
+  var something = require( 'something' );
+
+  The first and second are basically the same. If node.js can’t find the file ./something it automatically looks for ./something.js. In other words, with ./something.js it loads a bit faster. As for the 3rd one. node.js looks for the package something not the file. We will talk about this later on the npm parts.
+
+
+  exports VS module.exports
+  They are similar but different. The following two works the same.
+ 
+    
+  Using `module.exports`
+  module.exports = {
+      do_a : function(){
+            // do something ...
+              },
+                do_b : function(){
+                      // do something ...
+                        }
+  };
+
+  Using `exports`
+  exports.do_a = function(){
+      // do something ...
+  };
+   
+   exports.do_b = function(){
+       // do something ...
+   };
+
+   We can use both in another file with
+   var something = require( './something' );
+    something.do_a();
+    something.so_b();
+
+  exports results in require('module') retriving a static pointer to function 
+  module.exports results in require('module') retriving a object enclise in { } of module.exports
+  
+ 
+  var mod = require('module')
+  mod(); // this can be done in exports..
+  
+  but can be done in module.exports when
+  module.exports= function(){
+      read: function(){},
+      write: ....
+      }; 
+
+

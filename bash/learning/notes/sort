@@ -1,0 +1,6 @@
+sort - sorts alpahbetically
+sort -u - return unique items from sorting
+sort -n - numeric sorting
+sort -r - reverse sorting
+sort -o=File - results in output file
+sort -s - stable sorting logic sort --paralle=3 change number of sorts to run concurrently to n
