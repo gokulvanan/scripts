@@ -1,0 +1,1 @@
+mysql -usocial -psocial123$ -h192.168.10.93 < buff.sql | sed 1d |  awk 'NR%2'  | grep 0 | sed 's/.$//' | xargs -t -I '{}' grep '{}' temp/timezone/country.csv 2> /tmp/null | awk '{ split($0,a,","); print "insert into AdX.CountryMaster (cm_country_code, cm_country_name) values ("a[1]","a[2]"); " }' > countyAddition.sql
