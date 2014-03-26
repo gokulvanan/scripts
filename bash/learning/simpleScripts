@@ -1,0 +1,2 @@
+curl http://www.textfixer.com/resources/dropdowns/country-list-iso-codes.txt | awk '{ split($0,a,":"); print "select cm_id from CountryMaster where cm_country_name=\""a[2]"\"; " }' | mysql -usocial -psocial123$ -h192.168.10.93 | sed 1d | awk 'NR%2' |wc -l
+
